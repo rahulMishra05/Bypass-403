@@ -282,6 +282,22 @@ echo -n "X-Remote-Addr Payload:"
 echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent"
 code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
+echo -n "Host: <empty> Payload:"
+echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: " -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: " -X GET "$URL" -H "$user_agent")
+print
+echo -n "Host: localhost Payload:"
+echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: localhost" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: localhost" -X GET "$URL" -H "$user_agent")
+print
+echo -n "Host: 127.0.0.1 Payload:"
+echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+print
+echo -n "Host: 0.0.0.0 Payload:"
+echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 0.0.0.0" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 0.0.0.0" -X GET "$URL" -H "$user_agent")
+print
 echo -n "X-OReferrer Payload:"
 echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-OReferrer: https%3A%2F%2Fwww.google.com%2F" -X GET "$URL" -H "$user_agent"
 code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-OReferrer: https%3A%2F%2Fwww.google.com%2F" -X GET "$URL" -H "$user_agent")
