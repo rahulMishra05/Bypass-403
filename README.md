@@ -18,7 +18,8 @@ Put it in your `.zshrc` or `.bashrc`
 
 ```bash
 # Using tee to keep the logs, trust me, you'll need them
-alias bypass-403='f(){ /opt/Bypass-403/403_bypass.sh -u $@ 2>&1 | tee bypass-403-$(date "+%Y-%m-%d-%T");  unset -f f; }; f'
+alias bypass-403='f(){ /opt/Bypass-403/403_bypass.sh -u $@ 2>&1 | tee bypass-403-$(date "+%Y-%m-%d-%T").log;  unset -f f; }; f'
+
 ```
 
 
