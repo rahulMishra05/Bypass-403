@@ -1,6 +1,6 @@
 # Bypass 403
 
-Tool that tests MANY url bypass to reach a 40X protected page.
+Tool that tests `MANY` url bypass to reach a `40X protected page`.
 
 
 ## How to use?
@@ -15,9 +15,9 @@ sudo mv Bypass-403 /opt/ && cd /opt/Bypass-403
 ## Convenient alias
 
 Put it in your `.zshrc` or `.bashrc`
-f
+
 ```bash
-# TODO test alias
+# Using tee to keep the logs, trust me, you'll need them
 alias bypass-403='f(){ /opt/Bypass-403/403_bypass.sh -u $@ 2>&1 | tee bypass-403-$(date "+%Y-%m-%d-%T");  unset -f f; }; f'
 ```
 
@@ -31,7 +31,7 @@ A first python-base approach was made, but the issue if that while we're not usi
 
 ## Contribute
 
-1. Fork
+1. Fork this repo
 1. `git checkout -b "$USER/$FEATURE"`
 1. Implement your feature / refactor
 1. `git push --set-upstream origin "$USER/$FEATURE"`
