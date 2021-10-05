@@ -14,10 +14,19 @@ sudo mv Bypass-403 /opt/ && cd /opt/Bypass-403
 
 ## Convenient alias
 
+Put it in your `.zshrc` or `.bashrc`
+f
 ```bash
-echo "alias bypass-403='/opt/Bypass-403/403_bypass.sh -u'" >> ~/.bashrc
-echo "alias bypass-403='/opt/Bypass-403/403_bypass.sh -u'" >> ~/.zshrc
+# TODO test alias
+alias bypass-403='f(){ /opt/Bypass-403/403_bypass.sh -u $@ 2>&1 | tee bypass-403-$(date "+%Y-%m-%d-%T");  unset -f f; }; f'
 ```
+
+
+## Dirty code disclaimer
+
+The code is bad. Like, really bad.
+
+A first python-base approach was made, but the issue if that while we're not using raw sockets, too many wrappers are decoding/encoding the url before sending it to the server, so it was a pain to send our actual payloads to the server, thus here we are, in 2021, using `curl --path-as-is -skg`, and it works smoothly!
 
 
 ## Contribute
