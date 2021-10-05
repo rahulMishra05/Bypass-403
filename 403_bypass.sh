@@ -2372,4 +2372,5 @@ print
 
 echo -e ${green}"All done, scan results in $PWD"${end}
 echo -e ${green}"Now displaying unique results, inspect them manually (cat, bat, ...)"${end}
+wc "$PWD"/*  | grep --color=never -F 'original.html'
 wc "$PWD"/*  | grep -vF total | awk -F/ '!_[$1]++' | sort -n
